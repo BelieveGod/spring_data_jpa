@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+
+    <!--spring-->
+    <!--配置spring的注解扫描-->
+    <context:component-scan base-package="me.believeGod"/>
+
+    <!--启用属性配置文件-->
+    <context:property-placeholder location="classpath:spring.properties"/>
+
+    <!--整合spring data jpa-->
+    <jpa:repositories base-package="me.believeGod.dao"
+                      entity-manager-factory-ref="entityManagerFactory"
+                      transaction-manager-ref="transactionManager" />
+
+    <!--创建实体管理器工厂,交给spring管理-->
+    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <!--配置数据源-->
+        <property name="dataSource" ref="dataSource"/>
+        <!--配置要扫描的包，实体所在包-->
+        <property name="packagesToScan" value="me.believeGod.entity"/>
+        <!--配置jpa的实现方-->
+        <property name="persistenceProvider">
+            <bean class="org.hibernate.jpa.HibernatePersistenceProvider"/>
+        </property>
+
+        <!--jpa的实现方的配置-->
+        <property name="jpaVendorAdapter">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+                <!--数据库类型-->
+                <property name="database" value="MYSQL"/>
+                <!--控制台显示sql语句-->
+                <property name="showSql" value="true"/>
+                <!--是否自动创建数据库表-->
+                <property name="generateDdl" value="true"/>
+                <!--数据库方言-->
+                <property name="databasePlatform" value="org.hibernate.dialect.MySQL5InnoDBDialect"/>
+                <!--<property name="databasePlatform" value="org.hibernate.dialect.MySQL5Dialect"/>-->
+            </bean>
+        </property>
+
+        <!--jpa方言:高级特性-->
+        <property name="jpaProperties">
+            <props>
+                <prop key="hibernate.format_sql">true</prop>
+                <!--<prop key="hibernate.dialect.storage_engine">innodb</prop>-->
+            </props>
+        </property>
+
+    </bean>
+
+    <!--数据源-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
+          destroy-method="close">
+    <property name="url" value="${jdbc.url}" />
+    <property name="username" value="${jdbc.userName}" />
+    <property name="password" value="${jdbc.password}" />
+    <property name="driverClassName" value="${jdbc.driverClassName}" />
+
+    <property name="maxActive" value="${jdbc.maxActive}" />
+    <property name="initialSize" value="${jdbc.initialSize}" />
+    <property name="maxWait" value="${jdbc.maxWait}" />
+    <property name="minIdle" value="${jdbc.minIdle}" />
+    </bean>
+
+    <!--事务管理器-->
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory"/>
+    </bean>
+
+</beans>
